@@ -20,6 +20,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Setup Gradle 9.5
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5'
+
       - name: Extract Android project
         run: |
           unzip -q ZhongBaTranslator_OneClick.zip -d extracted
@@ -28,19 +33,14 @@ jobs:
 
       - name: Find project
         run: |
-          PROJECT_DIR=$(dirname "$(find extracted -name settings.gradle.kts -o -name settings.gradle | head -1)")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          PROJECT_DIR=$(dirname "$(find extracted \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Android project: $PROJECT_DIR"
 
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew :app:assembleDebug --stacktrace
-          else
-            gradle :app:assembleDebug --stacktrace
-          fi
+          gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
